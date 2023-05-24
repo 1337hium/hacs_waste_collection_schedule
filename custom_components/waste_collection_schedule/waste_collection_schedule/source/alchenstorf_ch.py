@@ -1,4 +1,5 @@
 import logging
+import json
 from datetime import datetime
 
 import requests
@@ -28,22 +29,31 @@ class Source:
         self = None
 
     def fetch(self):
-        r = requests.get("https://www.alchenstorf.ch/abfalldaten")
+        response = requests.get("https://www.alchenstorf.ch/abfalldaten")
 
-        r.raise_for_status()
+        html = BeautifulSoup(response.text, "html.parser")
 
-        soup = BeautifulSoup(r.text, "html.parser")
+        table = html.find("table", attrs={"id": "icmsTable-abfallsammlung"})
+        data = json.loads(table.attrs["data-entities"])
 
         entries = []
+        for item in data["data"]:
+            if (
+                self._city in item["abfallkreisIds"]
+                or self._city in item["abfallkreisNameList"]
+            ):
+                next_pickup = item["_anlassDate-sort"].split()[0]
+                next_pickup_date = datetime.fromisoformat(next_pickup).date()
 
-        for tag in soup.find_all(class_="InstList-institution InstDetail-termin"):
-            for typ in tag.find_all("strong"):
-                # print(typ.string)
-                waste_type = typ.string
-            for date in tag.find_all("span", class_="mobile"):
-                # print(date.string[-8:])
-                waste_date = datetime.strptime(date.string[-8:], "%d.%m.%y").date()
+                waste_type = BeautifulSoup(item["name"], "html.parser").text
+                waste_type_sorted = BeautifulSoup(item["name-sort"], "html.parser").text
 
-            entries.append(Collection(waste_date, waste_type, ICON_MAP.get(waste_type)))
+                entries.append(
+                    Collection(
+                        date=next_pickup_date,
+                        t=waste_type,
+                        icon=ICON_MAP.get(waste_type_sorted, "mdi:trash-can"),
+                    )
+                )
 
         return entries
