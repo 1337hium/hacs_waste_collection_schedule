@@ -16,9 +16,7 @@ ICON_MAP = {
     "Kehrichtabfuhr Alchenstorf": "mdi:trash-can-outline",
     "Kartonsammlung Alchenstorf": "mdi:recycle",
     "Papiersammlung Alchenstorf": "mdi:newspaper-variant-multiple-outline",
-    #   "Häckselservice": "mdi:leaf-off",
     "Alteisenabfuhr Alchenstorf": "mdi:desktop-classic",
-    # "Zusätzliche Gratis-Laubabfuhr": "mdi:leaf",
 }
 
 _LOGGER = logging.getLogger(__name__)
